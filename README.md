@@ -1,105 +1,109 @@
-# DJS05: Show Detail Page with Routing and Navigation
+# DJS05 — Podcast Show Detail Page with Routing & Navigation
 
-## Project Overview
+A React + Vite podcast browsing app that adds dynamic, per-show detail
+pages to the DJS series. Users can browse a searchable, filterable,
+sortable, paginated show list, click into any show for a full detail
+page, and navigate back to the homepage with their previous search and
+filters exactly as they left them.
 
-In this project, you will build a podcast show detail page as part of a larger podcast browsing app. When users select a show from the homepage or listing page, they should be taken to a dedicated page that displays all details about that show. The app will support dynamic routing so each show has its own unique URL.
+## Features
 
-You will implement data fetching based on the show ID in the URL, handle loading and error states gracefully, and ensure a smooth user experience by preserving search filters and pagination when users navigate back to the homepage. Additionally, you will build a season navigation system allowing users to expand or switch between seasons to browse episodes efficiently.
+- **Dynamic routing** — every show has its own URL at `/show/:showId`,
+  powered by `react-router-dom`. The id is read from the route param and
+  used to fetch that show's full record.
+- **Show detail page** — title, large artwork, description, genre tags,
+  and a human-readable "last updated" date.
+- **Season navigation** — an accordion lets users expand one season at a
+  time, see its title and episode count, and switch seasons without
+  scrolling through the entire show.
+- **Episode list** — each episode shows its number, the season's image,
+  its title, and a shortened (truncated) description.
+- **Loading, error, and empty states** — handled independently for both
+  the homepage list and the show detail fetch, so the user is never
+  looking at a blank screen or an unexplained failure.
+- **State preservation** — search term, genre filter, sort order, and
+  page number all live in the homepage URL's query string. Navigating to
+  a show and back (via browser back or the in-page "Back to shows" link)
+  restores the exact same view. As a safety net, the last homepage URL is
+  also mirrored to `sessionStorage`, so the "Back to shows" link still
+  works correctly even if a show page is opened directly.
+- **Responsive layout** — grid, hero, and season/episode lists adapt down
+  to mobile widths.
 
-This project will demonstrate your ability to work with dynamic routes, manage state across pages, handle asynchronous data, and create a clean, maintainable React codebase.
+## Getting Started
 
+### Prerequisites
 
-![alt text](<Show Page Podcast.png>)
+- Node.js 18 or later
+- npm
 
+### Installation
 
----
+```bash
+npm install
+```
 
-## Core Objectives
+### Run locally
 
-- Implement **dynamic routing** for unique show detail pages.
-- Pass the correct show ID via route parameters and use it to **fetch specific show data**.
-- Gracefully handle **loading, error, and empty states** during data fetching.
-- Display comprehensive show details including title, image, description, genres, and last updated date.
-- Preserve previous **filters and search state** when navigating back to the homepage.
-- Create an intuitive **season navigation** UI to expand and switch between seasons without excessive scrolling.
-- Display episode information clearly with numbering, titles, images, and shortened descriptions.
-- Maintain **high code quality** with documentation (JSDoc) and consistent formatting.
+```bash
+npm run dev
+```
 
----
+Vite will print a local URL (typically `http://localhost:5173`) — open
+it in your browser.
 
-### API Endpoints
+### Build for production
 
-Data can be called via a `fetch` request to the following three endpoints. Note that there is not always a one-to-one mapping between endpoints and actual data structures. Also note that **\*`<ID>`** indicates where the dynamic ID for the requested item should be placed. For example: `[https://podcast-api.netlify.app/genre/3](https://podcast-api.netlify.app/genre/3)`\*
+```bash
+npm run build
+npm run preview   # serve the production build locally
+```
 
-| URL                                          |                                                                                        |
-| -------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `https://podcast-api.netlify.app`            | Returns an array of PREVIEW                                                            |
-| `https://podcast-api.netlify.app/genre/<ID>` | Returns a GENRE object                                                                 |
-| `https://podcast-api.netlify.app/id/<ID>`    | Returns a SHOW object with several SEASON and EPISODE objects directly embedded within |
+## Project Structure
 
-### Genre Titles
+```
+src/
+  api/              Centralised fetch layer (previews, genre, show-by-id)
+  hooks/
+    useShowListQuery.js   Homepage search/filter/sort/pagination state, synced to the URL
+    useShowDetail.js      Fetches a single show by route id
+  utils/            Genre lookup, date formatting, text truncation
+  components/
+    Header/               Site header
+    ShowCard/, ShowGrid/   Homepage listing UI
+    Filters/, Pagination/  Homepage controls
+    StatusStates/          Shared loading / error / empty UI
+    GenreTags/             Genre pill list (used on show detail)
+    SeasonAccordion/       Expand/collapse season navigation
+    EpisodeCard/           Single episode row
+  pages/
+    HomePage.jsx          Listing page
+    ShowDetailPage.jsx    Dynamic per-show detail page
+    NotFoundPage.jsx      Fallback for unmatched routes
+  App.jsx           Route definitions
+  main.jsx          App entry point
+```
 
-Since genre information is only exposed on `PREVIEW` by means of the specific `GENRE` id, it is recommended that you include the mapping between genre id values and title in your code itself:
+## API Reference
 
-| ID  | Title                    |
-| --- | ------------------------ |
-| 1   | Personal Growth          |
-| 2   | Investigative Journalism |
-| 3   | History                  |
-| 4   | Comedy                   |
-| 5   | Entertainment            |
-| 6   | Business                 |
-| 7   | Fiction                  |
-| 8   | News                     |
-| 9   | Kids and Family          |
+| Endpoint | Returns |
+| --- | --- |
+| `GET /` | Array of show `PREVIEW` objects (homepage listing) |
+| `GET /genre/:id` | A single `GENRE` object |
+| `GET /id/:id` | A full `SHOW` object with `seasons` and `episodes` embedded |
 
-## Deliverables
+Genre id → title mapping is maintained locally in `src/utils/genres.js`,
+since the API only exposes genre ids (not titles) on preview and show
+records.
 
-1. **Homepage / Listing Page**
+## Known Limitations
 
-   - List of shows with clickable links or buttons that navigate to each show's detail page.
-   - Filters and search functionality that maintain state when navigating back from detail pages.
-
-2. **Dynamic Show Detail Page**
-
-   - A unique page for each show, accessible via a dynamic route.
-   - Fetch and display show details including:
-     - Title
-     - Large podcast image
-     - Description
-     - Genre tags
-     - Last updated date (formatted)
-   - Display loading indicator while fetching data.
-   - Display user-friendly error message if fetching fails.
-   - Handle empty states gracefully (e.g., show not found).
-
-3. **Season Navigation Component**
-
-   - UI to expand/collapse seasons.
-   - Show season title and episode count.
-   - List episodes per season including:
-     - Episode number
-     - Episode title
-     - Season image
-     - Shortened episode description
-
-4. **State Preservation**
-
-   - Maintain applied filters and search terms when navigating back to the homepage from a show detail page.
-
-5. **Code Quality**
-
-   - Well-structured, modular React components.
-   - JSDoc comments for all major functions and modules.
-   - Consistent and readable formatting across all files.
-
-6. **Responsive Design**
-
-   - The UI adapts smoothly across different device sizes (mobile, tablet, desktop).
-
-7. **README Documentation**
-   - Brief project overview.
-   - Instructions for running the project locally.
-   - Description of main features and any known limitations.
-
----
+- Genre titles are mapped from a static local table rather than fetched
+  from `/genre/:id` per show, since the id-to-title mapping is fixed and
+  known in advance — this avoids an extra network round trip per show.
+- Season/episode "favouriting" or playback is out of scope for this
+  project; the season accordion is for browsing and information display
+  only.
+- State preservation relies on the URL query string and a
+  `sessionStorage` fallback; it does not persist across different
+  browser sessions or devices.
